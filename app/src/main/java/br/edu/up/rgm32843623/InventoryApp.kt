@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.edu.up.rgm32843623.R.string
+import br.edu.up.rgm32843623.ui.navigation.InventoryNavHost
 
 
 /**
@@ -43,6 +44,7 @@ fun InventoryApp(navController: NavHostController = rememberNavController()) {
 /**
  * App bar to display title and conditionally display the back navigation.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryTopAppBar(
     title: String,
