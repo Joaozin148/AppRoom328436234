@@ -21,13 +21,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,13 +55,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.up.rgm32742541.ui.theme.InventoryTheme
 import br.edu.up.rgm32843623.InventoryTopAppBar
-import com.example.rgm32843623.R
+import br.edu.up.rgm32843623.ui.navigation.NavigationDestination
+import br.edu.up.rgm32843623.R
 import br.edu.up.rgm32843623.data.Item
-import com.example.rgm32843623.ui.AppViewModelProvider
-import com.example.rgm32843623.ui.navigation.NavigationDestination
-import com.example.rgm32843623.ui.theme.InventoryTheme
+import br.edu.up.rgm32843623.ui.AppViewModelProvider
+
 import kotlinx.coroutines.launch
+
 
 object ItemDetailsDestination : NavigationDestination {
     override val route = "item_details"
@@ -74,15 +73,19 @@ object ItemDetailsDestination : NavigationDestination {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun ItemDetailsScreen(
     navigateToEditItem: (Int) -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ItemDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
 ) {
+
     val uiState = viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             InventoryTopAppBar(
@@ -90,33 +93,24 @@ fun ItemDetailsScreen(
                 canNavigateBack = true,
                 navigateUp = navigateBack
             )
-        },
-        floatingActionButton = {
+        }, floatingActionButton = {
             FloatingActionButton(
                 onClick = { navigateToEditItem(uiState.value.itemDetails.id) },
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                    .padding(
-                        end = WindowInsets.safeDrawing.asPaddingValues()
-                            .calculateEndPadding(LocalLayoutDirection.current)
-                    )
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = stringResource(R.string.edit_item_title),
                 )
             }
-        },
-        modifier = modifier,
+        }, modifier = modifier
     ) { innerPadding ->
         ItemDetailsBody(
             itemDetailsUiState = uiState.value,
             onSellItem = { viewModel.reduceQuantityByOne() },
             onDelete = {
-                // Note: If the user rotates the screen very fast, the operation may get cancelled
-                // and the item may not be deleted from the Database. This is because when config
-                // change occurs, the Activity will be recreated and the rememberCoroutineScope will
-                // be cancelled - since the scope is bound to composition.
                 coroutineScope.launch {
                     viewModel.deleteItem()
                     navigateBack()
@@ -125,8 +119,8 @@ fun ItemDetailsScreen(
             modifier = Modifier
                 .padding(
                     start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
-                    top = innerPadding.calculateTopPadding(),
                     end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
+                    top = innerPadding.calculateTopPadding()
                 )
                 .verticalScroll(rememberScrollState())
         )
@@ -145,14 +139,16 @@ private fun ItemDetailsBody(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
     ) {
         var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
+
         ItemDetails(
-            item = itemDetailsUiState.itemDetails.toItem(), modifier = Modifier.fillMaxWidth()
+            item = itemDetailsUiState.itemDetails.toItem(),
+            modifier = Modifier.fillMaxWidth()
         )
         Button(
             onClick = onSellItem,
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.small,
-            enabled = !itemDetailsUiState.outOfStock
+            enabled = true
         ) {
             Text(stringResource(R.string.sell))
         }
@@ -176,13 +172,13 @@ private fun ItemDetailsBody(
     }
 }
 
-
 @Composable
 fun ItemDetails(
     item: Item, modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier, colors = CardDefaults.cardColors(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
@@ -191,40 +187,32 @@ fun ItemDetails(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimensionResource(id = R.dimen.padding_medium)),
-            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+            verticalArrangement = Arrangement.spacedBy(
+                dimensionResource(id = R.dimen.padding_medium)
+            )
         ) {
             ItemDetailsRow(
                 labelResID = R.string.item,
                 itemDetail = item.name,
                 modifier = Modifier.padding(
-                    horizontal = dimensionResource(
-                        id = R.dimen
-                            .padding_medium
-                    )
+                    horizontal = dimensionResource(id = R.dimen.padding_medium)
                 )
             )
             ItemDetailsRow(
                 labelResID = R.string.quantity_in_stock,
                 itemDetail = item.quantity.toString(),
                 modifier = Modifier.padding(
-                    horizontal = dimensionResource(
-                        id = R.dimen
-                            .padding_medium
-                    )
+                    horizontal = dimensionResource(id = R.dimen.padding_medium)
                 )
             )
             ItemDetailsRow(
                 labelResID = R.string.price,
                 itemDetail = item.formatedPrice(),
                 modifier = Modifier.padding(
-                    horizontal = dimensionResource(
-                        id = R.dimen
-                            .padding_medium
-                    )
+                    horizontal = dimensionResource(id = R.dimen.padding_medium)
                 )
             )
         }
-
     }
 }
 
@@ -233,7 +221,7 @@ private fun ItemDetailsRow(
     @StringRes labelResID: Int, itemDetail: String, modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier) {
-        Text(text = stringResource(labelResID))
+        Text(stringResource(labelResID))
         Spacer(modifier = Modifier.weight(1f))
         Text(text = itemDetail, fontWeight = FontWeight.Bold)
     }
@@ -241,7 +229,9 @@ private fun ItemDetailsRow(
 
 @Composable
 private fun DeleteConfirmationDialog(
-    onDeleteConfirm: () -> Unit, onDeleteCancel: () -> Unit, modifier: Modifier = Modifier
+    onDeleteConfirm: () -> Unit,
+    onDeleteCancel: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     AlertDialog(onDismissRequest = { /* Do nothing */ },
         title = { Text(stringResource(R.string.attention)) },
@@ -249,12 +239,12 @@ private fun DeleteConfirmationDialog(
         modifier = modifier,
         dismissButton = {
             TextButton(onClick = onDeleteCancel) {
-                Text(text = stringResource(R.string.no))
+                Text(stringResource(R.string.no))
             }
         },
         confirmButton = {
             TextButton(onClick = onDeleteConfirm) {
-                Text(text = stringResource(R.string.yes))
+                Text(stringResource(R.string.yes))
             }
         })
 }
@@ -263,8 +253,13 @@ private fun DeleteConfirmationDialog(
 @Composable
 fun ItemDetailsScreenPreview() {
     InventoryTheme {
-        ItemDetailsBody(ItemDetailsUiState(
-            outOfStock = true, itemDetails = ItemDetails(1, "Pen", "$100", "10")
-        ), onSellItem = {}, onDelete = {})
+        ItemDetailsBody(
+            ItemDetailsUiState(
+                outOfStock = true,
+                itemDetails = ItemDetails(1, "Pen", "$100", "10")
+            ),
+            onSellItem = {},
+            onDelete = {}
+        )
     }
 }
